@@ -3,7 +3,6 @@ import { Book, Terminal, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api";
 import { NavLink } from "react-router";
-import { UUID } from "@elizaos/core";
 
 export default function Home() {
     const query = useQuery({

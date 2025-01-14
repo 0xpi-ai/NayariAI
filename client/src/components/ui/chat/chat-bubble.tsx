@@ -57,21 +57,26 @@ const ChatBubbleMessage = forwardRef<HTMLDivElement, ChatBubbleMessageProps>(
 );
 ChatBubbleMessage.displayName = "ChatBubbleMessage";
 
-const ChatBubbleTimestamp = forwardRef<
-    HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-    return (
-        <div
-            ref={ref}
-            className={cn(
-                "text-[10px] uppercase text-muted-foreground",
-                className
-            )}
-            {...props}
-        />
-    );
-});
+interface ChatBubbleTimestampProps extends React.HTMLAttributes<HTMLDivElement> {
+    timestamp: string;
+}
+
+const ChatBubbleTimestamp = forwardRef<HTMLDivElement, ChatBubbleTimestampProps>(
+    ({ className, timestamp, ...props }, ref) => {
+        return (
+            <div
+                ref={ref}
+                className={cn(
+                    "text-[10px] uppercase text-muted-foreground",
+                    className
+                )}
+                {...props}
+            >
+                {timestamp}
+            </div>
+        );
+    }
+);
 ChatBubbleTimestamp.displayName = "ChatBubbleTimestamp";
 
 export { ChatBubble, ChatBubbleMessage, ChatBubbleTimestamp };
