@@ -8,10 +8,13 @@ export default function Home() {
     const query = useQuery({
         queryKey: ["agents"],
         queryFn: () => apiClient.getAgents(),
-        refetchInterval: 5_000
+        refetchInterval: 5_000,
+        retry: 1,
+        // Initialize with empty agents array to prevent undefined
+        initialData: { agents: [] }
     });
 
-    const agents = query?.data?.agents;
+    const agents = query?.data?.agents || [];
     const contractAddress = "DHsFSANzm3eBSAbTQX4MTJrJG8JZJTRcaXFjgp7dpump";
 
     return (
@@ -51,26 +54,33 @@ export default function Home() {
                     </Button>
                 </NavLink>
 
-                {agents && agents[0] && (
-                    <NavLink to={`/chat/${agents[0].id}`} className="w-full md:w-auto">
-                        <Button
-                            className="w-full h-16 bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-3 text-lg"
-                            size="lg"
-                        >
-                            <MessageSquare className="w-6 h-6" />
-                            Chat with AI
-                        </Button>
+                <Button
+                    className="w-full h-16 bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-3 text-lg md:w-auto"
+                    size="lg"
+                    asChild
+                    disabled={agents.length === 0}
+                >
+                    <NavLink to={agents.length > 0 ? `/chat/${agents[0].id}` : "#"}>
+                        <MessageSquare className="w-6 h-6" />
+                        Chat with AI
+                        {agents.length === 0 && <span className="text-xs ml-2">(Connecting...)</span>}
                     </NavLink>
-                )}
+                </Button>
             </div>
 
             {/* Status Section */}
             <div className="text-center mb-8">
-                <p className="text-muted-foreground">
-                    {agents ?
-                        `Connected to ${agents.length} AI agent${agents.length !== 1 ? 's' : ''}` :
-                        'Connecting to AI agents...'}
-                </p>
+                {query.isError ? (
+                    <p className="text-destructive">
+                        Error connecting to AI agents. Please ensure the server is running.
+                    </p>
+                ) : (
+                    <p className="text-muted-foreground">
+                        {agents.length > 0
+                            ? `Connected to ${agents.length} AI agent${agents.length !== 1 ? 's' : ''}`
+                            : 'Connecting to AI agents...'}
+                    </p>
+                )}
             </div>
         </div>
     );
