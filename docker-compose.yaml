@@ -109,7 +109,7 @@ networks:
     name: web
     driver: bridge
     attachable: true
-    enable_ipv6: true
+    enable_ipv6: false
     driver_opts:
       com.docker.network.bridge.name: "eliza-net"
 
