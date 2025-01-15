@@ -98,6 +98,8 @@ services:
       - "traefik.http.services.agent.loadbalancer.server.port=3000"
     env_file:
       - .env
+    environment:
+      - USE_OPENAI_EMBEDDING=""  # Explicitly set to empty string to match local behavior
     restart: unless-stopped
 
   client:
