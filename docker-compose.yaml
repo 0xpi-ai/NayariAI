@@ -16,7 +16,6 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--api.dashboard=true"
-      # Add insecure mode for development until DNS is set up
       - "--api.insecure=true"
       - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
     ports:
@@ -96,6 +95,12 @@ services:
       - "traefik.http.routers.agent.entrypoints=websecure"
       - "traefik.http.routers.agent.tls.certresolver=letsencrypt"
       - "traefik.http.services.agent.loadbalancer.server.port=3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     env_file:
       - .env
     restart: unless-stopped
@@ -123,18 +128,28 @@ services:
     networks:
       - web
     depends_on:
-      - agent
-      - traefik
+      agent:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.client.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=letsencrypt"
       - "traefik.http.services.client.loadbalancer.server.port=5173"
+      # Add retry settings
+      - "traefik.http.middlewares.client-retry.retry.attempts=5"
+      - "traefik.http.middlewares.client-retry.retry.initialInterval=2s"
+      - "traefik.http.routers.client.middlewares=client-retry"
     env_file:
       - .env
     environment:
-      - VITE_API_URL=https://api.${DOMAIN}  # Only add what's needed for routing
+      - VITE_API_URL=https://api.${DOMAIN}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
 networks:
