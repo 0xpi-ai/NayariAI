@@ -105,9 +105,9 @@ services:
       dockerfile: Dockerfile
     platform: linux/amd64
     container_name: eliza-client
-    command: sh -c "sleep 120 && cd client && pnpm run build && pnpm run preview -- --host --port 5173"
+    command: sh -c "sleep 120 && cd client && pnpm run build && vite preview --host --port 4173"
     ports:
-      - "5173:5173"
+      - "4173:4173"
     volumes:
       # Root project files for monorepo
       - ./package.json:/app/package.json
@@ -128,7 +128,7 @@ services:
       - "traefik.http.routers.client.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=letsencrypt"
-      - "traefik.http.services.client.loadbalancer.server.port=5173"
+      - "traefik.http.services.client.loadbalancer.server.port=4173"  # Changed to match preview port
       # Add retry settings
       - "traefik.http.middlewares.client-retry.retry.attempts=5"
       - "traefik.http.middlewares.client-retry.retry.initialInterval=2s"
