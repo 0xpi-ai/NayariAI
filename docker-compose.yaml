@@ -105,7 +105,7 @@ services:
       dockerfile: Dockerfile
     platform: linux/amd64
     container_name: eliza-client
-    command: sh -c "sleep 120 && cd client && pnpm run build && vite preview --host --port 4173"
+    command: sh -c "sleep 120 && cd client && pnpm run build && VITE_HOST=0.0.0.0 VITE_PORT=4173 pnpm run preview"
     ports:
       - "4173:4173"
     volumes:
@@ -128,7 +128,7 @@ services:
       - "traefik.http.routers.client.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=letsencrypt"
-      - "traefik.http.services.client.loadbalancer.server.port=4173"  # Changed to match preview port
+      - "traefik.http.services.client.loadbalancer.server.port=4173"
       # Add retry settings
       - "traefik.http.middlewares.client-retry.retry.attempts=5"
       - "traefik.http.middlewares.client-retry.retry.initialInterval=2s"
@@ -137,6 +137,8 @@ services:
       - .env
     environment:
       - VITE_API_URL=https://api.${DOMAIN}
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=4173
     restart: unless-stopped
 
 networks:
