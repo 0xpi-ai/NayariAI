@@ -86,7 +86,7 @@ services:
       dockerfile: Dockerfile
     platform: linux/amd64
     working_dir: /app/client
-    command: sh -c "pnpm run build"
+    command: sh -c "pnpm run build && pnpm exec vite preview --host 0.0.0.0 --port 4173"
     expose:
       - "4173"
     volumes:
@@ -111,6 +111,8 @@ services:
       - NODE_ENV=production
       - HOST=0.0.0.0
       - PORT=4173
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=4173
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.client.rule=Host(`nayari.ai`, `www.nayari.ai`)"
