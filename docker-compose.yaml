@@ -96,13 +96,32 @@ services:
       - "traefik.http.routers.agent.entrypoints=websecure"
       - "traefik.http.routers.agent.tls.certresolver=letsencrypt"
       - "traefik.http.services.agent.loadbalancer.server.port=3000"
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV:-production}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - USE_OPENAI_EMBEDDING=true  # Re-enable OpenAI embedding since local BGE is failing
-      - CACHE_STORE=database
-      - PGLITE_DATA_DIR=memory://
-      - MODEL_CACHE_DIR=/app/packages/core/cache  # Explicitly set cache directory
+      - ELEVENLABS_XI_API_KEY=${ELEVENLABS_XI_API_KEY}
+      - DISCORD_APPLICATION_ID=${DISCORD_APPLICATION_ID}
+      - DISCORD_API_TOKEN=${DISCORD_API_TOKEN}
+      - TWITTER_DRY_RUN=${TWITTER_DRY_RUN}
+      - TWITTER_USERNAME=${TWITTER_USERNAME}
+      - TWITTER_PASSWORD=${TWITTER_PASSWORD}
+      - TWITTER_EMAIL=${TWITTER_EMAIL}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - WALLET_SECRET_KEY=${WALLET_SECRET_KEY}
+      - WALLET_PUBLIC_KEY=${WALLET_PUBLIC_KEY}
+      - BIRDEYE_API_KEY=${BIRDEYE_API_KEY}
+      - SOL_ADDRESS=${SOL_ADDRESS}
+      - SLIPPAGE=${SLIPPAGE}
+      - SOLANA_RPC_URL=${SOLANA_RPC_URL}
+      - HELIUS_API_KEY=${HELIUS_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TOGETHER_API_KEY=${TOGETHER_API_KEY}
+      - USE_OPENAI_EMBEDDING=${USE_OPENAI_EMBEDDING:-false}
+      - CACHE_STORE=${CACHE_STORE:-database}
+      - PGLITE_DATA_DIR=${PGLITE_DATA_DIR:-memory://}
+      - MODEL_CACHE_DIR=/app/packages/core/cache
     restart: unless-stopped
 
   client:
@@ -136,9 +155,16 @@ services:
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=letsencrypt"
       - "traefik.http.services.client.loadbalancer.server.port=5173"
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV:-production}
       - VITE_API_URL=https://api.${DOMAIN}
+      - ENABLE_VOICE=${ENABLE_VOICE:-true}
+      - ENABLE_STREAMING=${ENABLE_STREAMING:-true}
+      - ELEVENLABS_XI_API_KEY=${ELEVENLABS_XI_API_KEY}
+      - BIRDEYE_API_KEY=${BIRDEYE_API_KEY}
+      - HELIUS_API_KEY=${HELIUS_API_KEY}
     restart: unless-stopped
 
 networks:
