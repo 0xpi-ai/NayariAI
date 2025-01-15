@@ -97,7 +97,7 @@ services:
     env_file:
       - .env
     environment:
-      - VITE_API_URL=http://api.${DOMAIN}
+      - VITE_API_URL=http://api.nayari.ai
       - NODE_ENV=production
       - HOST=0.0.0.0
       - PORT=4173
