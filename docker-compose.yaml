@@ -17,7 +17,8 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--api.dashboard=true"
       - "--api.insecure=true"
-      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      # Remove staging server, use production
+      - "--log.level=DEBUG"  # Added for debugging
     ports:
       - "80:80"
       - "443:443"
@@ -95,6 +96,12 @@ services:
       - "traefik.http.routers.agent.entrypoints=websecure"
       - "traefik.http.routers.agent.tls.certresolver=letsencrypt"
       - "traefik.http.services.agent.loadbalancer.server.port=3000"
+      # Add CORS headers
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=https://${DOMAIN},https://www.${DOMAIN}"
+      - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.cors.headers.addvaryheader=true"
+      - "traefik.http.routers.agent.middlewares=cors"
     env_file:
       - .env
     restart: unless-stopped
@@ -133,6 +140,11 @@ services:
       - "traefik.http.middlewares.client-retry.retry.attempts=5"
       - "traefik.http.middlewares.client-retry.retry.initialInterval=2s"
       - "traefik.http.routers.client.middlewares=client-retry"
+      # Add security headers
+      - "traefik.http.middlewares.security.headers.sslredirect=true"
+      - "traefik.http.middlewares.security.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.security.headers.stsseconds=31536000"
+      - "traefik.http.routers.client.middlewares=security"
     env_file:
       - .env
     environment:
