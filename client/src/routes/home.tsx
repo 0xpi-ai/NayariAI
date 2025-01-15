@@ -15,7 +15,7 @@ export default function Home() {
     });
 
     const agents = query?.data?.agents || [];
-    const contractAddress = "Coming Soon!";
+    const contractAddress = "DHsFSANzm3eBSAbTQX4MTJrJG8JZJTRcaXFjgp7dpump";
 
     return (
         <div className="flex flex-col items-center min-h-screen gradient-bg p-4">
