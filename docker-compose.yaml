@@ -80,9 +80,12 @@ services:
       - ./packages/plugin-tee/src:/app/packages/plugin-tee/src
       # Core types mount (special case from docker.sh)
       - ./packages/core/types:/app/packages/core/types
-      # Cache directories
-      - agent-cache:/app/packages/core/cache
-      - agent-data:/app/agent/data
+      # Cache directories with proper permissions
+      - type: volume
+        source: agent-cache
+        target: /app/packages/core/cache
+        volume:
+          nocopy: true
     networks:
       - web
     depends_on:
@@ -96,9 +99,10 @@ services:
     environment:
       - NODE_ENV=production
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - USE_OPENAI_EMBEDDING=false  # Disable OpenAI embedding due to quota
+      - USE_OPENAI_EMBEDDING=true  # Re-enable OpenAI embedding since local BGE is failing
       - CACHE_STORE=database
       - PGLITE_DATA_DIR=memory://
+      - MODEL_CACHE_DIR=/app/packages/core/cache  # Explicitly set cache directory
     restart: unless-stopped
 
   client:
@@ -151,5 +155,7 @@ volumes:
     driver: local
   agent-cache:
     driver: local
-  agent-data:
-    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/packages/core/cache
+      o: bind
