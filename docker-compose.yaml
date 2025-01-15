@@ -105,7 +105,7 @@ services:
       dockerfile: Dockerfile
     platform: linux/amd64
     container_name: eliza-client
-    command: sh -c "sleep 120 && pnpm start:client"  # Wait for agent to be ready
+    command: sh -c "sleep 120 && pnpm start:client -- --host"
     ports:
       - "5173:5173"
     volumes:
@@ -125,7 +125,7 @@ services:
       - agent
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.client.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.client.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=letsencrypt"
       - "traefik.http.services.client.loadbalancer.server.port=5173"
