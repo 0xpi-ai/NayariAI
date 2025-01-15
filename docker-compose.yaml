@@ -17,8 +17,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--api.dashboard=true"
       - "--api.insecure=true"
-      # Remove staging server, use production
-      - "--log.level=DEBUG"  # Added for debugging
+      - "--log.level=DEBUG"
     ports:
       - "80:80"
       - "443:443"
@@ -112,7 +111,7 @@ services:
       dockerfile: Dockerfile
     platform: linux/amd64
     container_name: eliza-client
-    command: sh -c "sleep 120 && cd client && pnpm run build && VITE_HOST=0.0.0.0 VITE_PORT=4173 pnpm run preview"
+    command: sh -c "sleep 120 && cd client && pnpm run build && VITE_HOST=0.0.0.0 VITE_PORT=4173 NODE_ENV=production pnpm run preview -- --host 0.0.0.0 --port 4173"
     ports:
       - "4173:4173"
     volumes:
@@ -140,17 +139,13 @@ services:
       - "traefik.http.middlewares.client-retry.retry.attempts=5"
       - "traefik.http.middlewares.client-retry.retry.initialInterval=2s"
       - "traefik.http.routers.client.middlewares=client-retry"
-      # Add security headers
-      - "traefik.http.middlewares.security.headers.sslredirect=true"
-      - "traefik.http.middlewares.security.headers.stsincludesubdomains=true"
-      - "traefik.http.middlewares.security.headers.stsseconds=31536000"
-      - "traefik.http.routers.client.middlewares=security"
     env_file:
       - .env
     environment:
       - VITE_API_URL=https://api.${DOMAIN}
       - VITE_HOST=0.0.0.0
       - VITE_PORT=4173
+      - NODE_ENV=production
     restart: unless-stopped
 
 networks:
