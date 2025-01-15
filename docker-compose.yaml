@@ -1,40 +1,19 @@
 version: '3.8'
 
 services:
-  traefik:
-    image: traefik:v2.10
-    platform: linux/amd64
-    container_name: traefik
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--log.level=DEBUG"
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
     ports:
       - "80:80"
-      - "443:443"
-      - "8080:8080"  # Expose dashboard port in insecure mode
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "letsencrypt:/letsencrypt"
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx:/etc/nginx/conf.d:ro
     networks:
       - web
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_HOST}`)"
-      - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.dashboard.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+    depends_on:
+      - agent
+      - client
     restart: unless-stopped
 
   agent:
@@ -44,8 +23,8 @@ services:
     platform: linux/amd64
     container_name: eliza-agent
     command: pnpm start --characters="characters/Nayari.character.json"
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     volumes:
       # Base mounts from docker.sh
       - ./characters:/app/characters
@@ -87,20 +66,6 @@ services:
           nocopy: true
     networks:
       - web
-    depends_on:
-      - traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.agent.rule=Host(`api.${DOMAIN}`)"
-      - "traefik.http.routers.agent.entrypoints=websecure"
-      - "traefik.http.routers.agent.tls.certresolver=letsencrypt"
-      - "traefik.http.services.agent.loadbalancer.server.port=3000"
-      # Add CORS headers
-      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
-      - "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=https://${DOMAIN},https://www.${DOMAIN}"
-      - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.cors.headers.addvaryheader=true"
-      - "traefik.http.routers.agent.middlewares=cors"
     env_file:
       - .env
     restart: unless-stopped
@@ -113,8 +78,8 @@ services:
     container_name: eliza-client
     working_dir: /app/client
     command: sh -c "sleep 120 && pnpm run build && pnpm exec vite preview --host 0.0.0.0 --port 4173"
-    ports:
-      - "4173:4173"
+    expose:
+      - "4173"
     volumes:
       # Root project files for monorepo
       - ./package.json:/app/package.json
@@ -130,20 +95,10 @@ services:
       - web
     depends_on:
       - agent
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.client.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
-      - "traefik.http.routers.client.entrypoints=websecure"
-      - "traefik.http.routers.client.tls.certresolver=letsencrypt"
-      - "traefik.http.services.client.loadbalancer.server.port=4173"
-      # Add retry settings
-      - "traefik.http.middlewares.client-retry.retry.attempts=5"
-      - "traefik.http.middlewares.client-retry.retry.initialInterval=2s"
-      - "traefik.http.routers.client.middlewares=client-retry"
     env_file:
       - .env
     environment:
-      - VITE_API_URL=https://api.${DOMAIN}
+      - VITE_API_URL=http://api.${DOMAIN}
       - NODE_ENV=production
     restart: unless-stopped
 
@@ -157,8 +112,6 @@ networks:
       com.docker.network.bridge.name: "eliza-net"
 
 volumes:
-  letsencrypt:
-    driver: local
   agent-cache:
     driver: local
     driver_opts:
