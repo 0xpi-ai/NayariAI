@@ -111,7 +111,8 @@ services:
       dockerfile: Dockerfile
     platform: linux/amd64
     container_name: eliza-client
-    command: sh -c "sleep 120 && cd client && pnpm run build && VITE_HOST=0.0.0.0 VITE_PORT=4173 NODE_ENV=production pnpm run preview -- --host 0.0.0.0 --port 4173"
+    working_dir: /app/client
+    command: sh -c "sleep 120 && pnpm run build && pnpm exec vite preview --host 0.0.0.0 --port 4173"
     ports:
       - "4173:4173"
     volumes:
@@ -143,8 +144,6 @@ services:
       - .env
     environment:
       - VITE_API_URL=https://api.${DOMAIN}
-      - VITE_HOST=0.0.0.0
-      - VITE_PORT=4173
       - NODE_ENV=production
     restart: unless-stopped
 
