@@ -4,10 +4,15 @@
 sudo mkdir -p certbot/conf
 sudo mkdir -p certbot/www
 
+# Create cache directory for agent
+sudo mkdir -p packages/core/cache
+
 # Set proper permissions with sudo
 sudo chmod -R 755 certbot/www
 sudo chmod -R 755 certbot/conf
+sudo chmod -R 755 packages/core/cache
 sudo chown -R $USER:$USER certbot
+sudo chown -R $USER:$USER packages/core/cache
 
 # Stop any running containers
 sudo docker compose down
