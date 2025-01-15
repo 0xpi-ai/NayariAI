@@ -10,7 +10,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro  # Fixed path
     networks:
-      - web
+      - eliza-network
     depends_on:
       - agent
       - client
@@ -65,7 +65,7 @@ services:
         volume:
           nocopy: true
     networks:
-      - web
+      - eliza-network
     env_file:
       - .env
     restart: unless-stopped
@@ -92,7 +92,7 @@ services:
       - ./client:/app/client
       - ./packages:/app/packages
     networks:
-      - web
+      - eliza-network
     depends_on:
       - agent
     env_file:
@@ -106,12 +106,10 @@ services:
 
 networks:
   web:
-    name: web
+    name: eliza-network
     driver: bridge
     attachable: true
     enable_ipv6: false
-    driver_opts:
-      com.docker.network.bridge.name: "eliza-net"
 
 volumes:
   agent-cache:
