@@ -51,7 +51,7 @@ Here is the descriptions of images in the Current post.
 Thread of Tweets You Are Replying To:
 {{formattedConversation}}
 
-# INSTRUCTIONS: Generate a post in the voice, style and perspective of {{agentName}} (@{{twitterUserName}}). You MUST include an action if the current post text includes a prompt that is similar to one of the available actions mentioned here:
+# INSTRUCTIONS: Generate a post in the voice, style and perspective of {{agentName}} (@{{twitterUserName}}). Write ONLY the plain text response, no JSON formatting, no emojis or emoticons. You MUST include an action if the current post text includes a prompt that is similar to one of the available actions mentioned here:
 {{actionNames}}
 {{actions}}
 
@@ -450,14 +450,32 @@ export class TwitterInteractionClient {
             modelClass: ModelClass.LARGE,
         });
 
-        const removeQuotes = (str: string) =>
-            str.replace(/^['"](.*)['"]$/, "$1");
+        const cleanResponse = (text: string) => {
+            // Handle Claude's common response patterns
+            if (text.includes('"text":') || text.includes('"content":') || text.includes('"response":')) {
+                try {
+                    // Try parsing as JSON first
+                    const parsed = JSON.parse(text);
+                    return parsed.text || parsed.content || parsed.response || text;
+                } catch (e) {
+                    // If not valid JSON, try regex cleanup
+                    const matches = text.match(/"(?:text|content|response)":\s*"([^"]+)"/);
+                    if (matches && matches[1]) {
+                        return matches[1];
+                    }
+                }
+            }
+
+            // Remove any remaining JSON-like artifacts
+            return text.replace(/^\s*{?\s*"[^"]+"\s*:\s*"|"\s*}?\s*$/g, "")
+                      .replace(/\\"/g, '"')  // Fix escaped quotes
+                      .replace(/\\n/g, "\n")  // Fix newlines
+                      .trim();
+        };
 
         const stringId = stringToUuid(tweet.id + "-" + this.runtime.agentId);
-
         response.inReplyTo = stringId;
-
-        response.text = removeQuotes(response.text);
+        response.text = cleanResponse(response.text);
 
         if (response.text) {
             if (this.isDryRun) {
