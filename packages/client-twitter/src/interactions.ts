@@ -504,6 +504,7 @@ export class TwitterInteractionClient {
                     )) as State;
 
                     for (const responseMessage of responseMessages) {
+                        // Set action on the response message for processing
                         if (
                             responseMessage ===
                             responseMessages[responseMessages.length - 1]
@@ -512,9 +513,7 @@ export class TwitterInteractionClient {
                         } else {
                             responseMessage.content.action = "CONTINUE";
                         }
-                        await this.runtime.messageManager.createMemory(
-                            responseMessage
-                        );
+                        // Memory creation is handled in sendTweet
                     }
 
                     await this.runtime.processActions(
