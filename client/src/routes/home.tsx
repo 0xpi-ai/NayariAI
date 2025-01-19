@@ -123,7 +123,7 @@ export default function Home() {
 
                 <div className="flex-1 pt-24 pb-6 flex flex-col">
                     {/* Main Section */}
-                    <div className="grid grid-cols-12 gap-6 h-[600px]">
+                    <div className="grid grid-cols-12 gap-6 h-full">
                         {/* Left Column - AI Image */}
                         <div className="col-span-4">
                             <Card className="bg-black/40 border-white/10 backdrop-blur-sm h-full">
@@ -163,7 +163,7 @@ export default function Home() {
                                     <CardTitle className="text-white">Start a Conversation</CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex-1 min-h-0 p-0 overflow-hidden">
-                                    <div className="h-full flex flex-col [&>div]:h-full [&>div]:!p-0 [&_.bg-card]:!bg-black/40 [&_form]:!bg-black/40 [&_form]:!border-white/10 [&_.ChatInput]:!bg-transparent [&_.ChatInput]:!border-none [&_.ChatInput]:!text-white [&_.ChatInput]:placeholder:!text-white/40 [&_.ChatBubble]:!bg-black/40 [&_.ChatBubble]:!border-white/10 [&_button]:!bg-blue-500 [&_button]:hover:!bg-blue-600 [&_button.ghost]:!bg-transparent">
+                                    <div className="h-full flex flex-col [&>div]:h-full [&>div]:!p-0 [&_.bg-card]:!bg-black/40 [&_form]:!bg-black/40 [&_form]:!border-white/10 [&_.ChatInput]:!bg-transparent [&_.ChatInput]:!border-none [&_.ChatInput]:!text-white [&_.ChatInput]:placeholder:!text-white/40 [&_.ChatBubble]:!bg-black/40 [&_.ChatBubble]:!border-white/10 [&_button]:!bg-blue-500 [&_button]:hover:!bg-blue-600 [&_button.ghost]:!bg-transparent [&>div>div]:!h-full [&>div>div]:!flex [&>div>div]:!flex-col [&>div>div]:!overflow-hidden [&>div>div>div]:!flex-1 [&>div>div>div]:!overflow-y-auto [&>div>div>form]:!flex-none">
                                         {(() => {
                                             console.log("Rendering chat container with state:", {
                                                 isError: query.isError,
@@ -190,11 +190,13 @@ export default function Home() {
 
                                             console.log("Mounting Chat component with agentId:", agents[0].id);
                                             return (
-                                                <div className="flex-1 min-h-0 overflow-hidden">
-                                                    <Chat
-                                                        key={agents[0].id}
-                                                        agentId={agents[0].id}
-                                                    />
+                                                <div className="h-full overflow-hidden">
+                                                    <div className="h-full flex flex-col">
+                                                        <Chat
+                                                            key={agents[0].id}
+                                                            agentId={agents[0].id}
+                                                        />
+                                                    </div>
                                                 </div>
                                             );
                                         })()}
