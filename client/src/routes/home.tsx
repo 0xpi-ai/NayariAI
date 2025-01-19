@@ -6,18 +6,52 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiClient } from "@/lib/api";
 import { Link } from "react-router-dom";
 import Chat from "@/components/chat";
+import { UUID } from "@elizaos/core";
+
+interface AgentResponse {
+    agents: Array<{
+        id: UUID;
+        character?: {
+            name: string;
+        };
+    }>;
+}
 
 export default function Home() {
     const [showMenu, setShowMenu] = React.useState({ terminal: false, wallet: false });
-    const query = useQuery({
+    const query = useQuery<AgentResponse>({
         queryKey: ["agents"],
-        queryFn: () => apiClient.getAgents(),
+        queryFn: async () => {
+            console.log("Fetching agents...");
+            const result = await apiClient.getAgents();
+            console.log("Agents result:", result);
+            return result;
+        },
         refetchInterval: 5000,
-        retry: 1,
+        retry: 3,
+        retryDelay: 1000,
         initialData: { agents: [] }
     });
 
-    const agents = query?.data?.agents || [];
+    React.useEffect(() => {
+        console.log("Query state:", {
+            isLoading: query.isLoading,
+            isError: query.isError,
+            isSuccess: query.isSuccess,
+            data: query.data
+        });
+    }, [query.data, query.isLoading, query.isError, query.isSuccess]);
+
+    React.useEffect(() => {
+        if (query.data?.agents?.length > 0) {
+            console.log("Agents loaded:", {
+                firstAgent: query.data.agents[0],
+                totalAgents: query.data.agents.length
+            });
+        }
+    }, [query.data?.agents]);
+
+    const agents = query.data?.agents || [];
 
     return (
         <div className="h-screen flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900 via-black to-purple-900">
@@ -124,20 +158,47 @@ export default function Home() {
 
                         {/* Right Column - Chat */}
                         <div className="col-span-8">
-                            <Card className="bg-black/40 border-white/10 backdrop-blur-sm h-full">
-                                <CardHeader className="border-b border-white/10">
+                            <Card className="bg-black/40 border-white/10 backdrop-blur-sm h-full flex flex-col">
+                                <CardHeader className="border-b border-white/10 flex-none">
                                     <CardTitle className="text-white">Start a Conversation</CardTitle>
                                 </CardHeader>
-                                <CardContent className="p-0 h-[calc(100%-theme(spacing.16))]">
-                                    {agents.length > 0 ? (
-                                        <div className="h-full [&>div]:h-full [&>div]:!p-0 [&_.bg-card]:!bg-black/40 [&_form]:!bg-black/40 [&_form]:!border-white/10 [&_.ChatInput]:!bg-transparent [&_.ChatInput]:!border-none [&_.ChatInput]:!text-white [&_.ChatInput]:placeholder:!text-white/40 [&_.ChatBubble]:!bg-black/40 [&_.ChatBubble]:!border-white/10 [&_button]:!bg-blue-500 [&_button]:hover:!bg-blue-600 [&_button.ghost]:!bg-transparent">
-                                            <Chat agentId={agents[0].id} />
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-white/60">
-                                            Connecting to AI agent...
-                                        </div>
-                                    )}
+                                <CardContent className="flex-1 min-h-0 p-0 overflow-hidden">
+                                    <div className="h-full flex flex-col [&>div]:h-full [&>div]:!p-0 [&_.bg-card]:!bg-black/40 [&_form]:!bg-black/40 [&_form]:!border-white/10 [&_.ChatInput]:!bg-transparent [&_.ChatInput]:!border-none [&_.ChatInput]:!text-white [&_.ChatInput]:placeholder:!text-white/40 [&_.ChatBubble]:!bg-black/40 [&_.ChatBubble]:!border-white/10 [&_button]:!bg-blue-500 [&_button]:hover:!bg-blue-600 [&_button.ghost]:!bg-transparent">
+                                        {(() => {
+                                            console.log("Rendering chat container with state:", {
+                                                isError: query.isError,
+                                                hasData: !!query.data,
+                                                agentsLength: agents.length,
+                                                firstAgentId: agents[0]?.id
+                                            });
+
+                                            if (query.isError) {
+                                                return (
+                                                    <div className="flex items-center justify-center h-full text-white/60">
+                                                        Error connecting to AI agent. Please try again.
+                                                    </div>
+                                                );
+                                            }
+
+                                            if (!query.data || !agents.length) {
+                                                return (
+                                                    <div className="flex items-center justify-center h-full text-white/60">
+                                                        Connecting to AI agent...
+                                                    </div>
+                                                );
+                                            }
+
+                                            console.log("Mounting Chat component with agentId:", agents[0].id);
+                                            return (
+                                                <div className="flex-1 min-h-0 overflow-hidden">
+                                                    <Chat
+                                                        key={agents[0].id}
+                                                        agentId={agents[0].id}
+                                                    />
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
