@@ -1,6 +1,6 @@
 {
     "name": "Nayari",
-    "clients": ["direct","twitter"],
+    "clients": ["twitter"],
     "modelProvider": "openrouter",
     "settings": {
         "voice": {

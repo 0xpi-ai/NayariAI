@@ -25,8 +25,8 @@ export default function AgentRoute() {
             </div>
 
             {/* Chat Interface */}
-            <div className="flex-1 overflow-hidden">
-                <Chat agentId={agentId} />
+            <div className="flex-1 overflow-hidden flex flex-col relative">
+                <Chat agentId={agentId} className="absolute inset-0" />
             </div>
         </div>
     );
