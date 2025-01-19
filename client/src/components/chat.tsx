@@ -31,7 +31,7 @@ interface ExtraContentFields {
 
 type ContentWithUser = Content & ExtraContentFields;
 
-export default function Page({ agentId }: { agentId: UUID }) {
+export default function Page({ agentId, className }: { agentId: UUID, className?: string }) {
     const { toast } = useToast();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [input, setInput] = useState("");
@@ -72,7 +72,7 @@ export default function Page({ agentId }: { agentId: UUID }) {
         const attachments: IAttachment[] | undefined = selectedFile
             ? [
                   {
-                      url: URL.createObjectURL(selectedFile),
+                      url: selectedFile ? URL.createObjectURL(selectedFile) : '',
                       contentType: selectedFile.type,
                       title: selectedFile.name,
                   },
@@ -165,13 +165,15 @@ export default function Page({ agentId }: { agentId: UUID }) {
     });
 
     return (
-        <div className="flex flex-col w-full h-[calc(100dvh)] p-4">
-            <div className="flex-1 overflow-y-auto">
-                <ChatMessageList ref={messagesContainerRef}>
+        <div
+            className={cn("flex flex-col w-full h-full relative", className)}
+        >
+            <div className="absolute inset-0 overflow-y-auto px-4 pt-4 pb-[180px]">
+                <ChatMessageList ref={messagesContainerRef} className="h-full">
                     {transitions((styles, message) => {
                         const variant = getMessageVariant(message?.user);
                         return (
-                            // @ts-expect-error
+                            // @ts-expect-error animated.div from react-spring has incompatible types with ChatBubble props
                             <animated.div
                                 style={styles}
                                 className="flex flex-col gap-2 p-4"
@@ -268,7 +270,7 @@ export default function Page({ agentId }: { agentId: UUID }) {
                     })}
                 </ChatMessageList>
             </div>
-            <div className="px-4 pb-4">
+            <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/50">
                 <form
                     ref={formRef}
                     onSubmit={handleSendMessage}
@@ -286,7 +288,7 @@ export default function Page({ agentId }: { agentId: UUID }) {
                                     <X />
                                 </Button>
                                 <img
-                                    src={URL.createObjectURL(selectedFile)}
+                                    src={selectedFile ? URL.createObjectURL(selectedFile) : ''}
                                     height="100%"
                                     width="100%"
                                     className="aspect-square object-contain w-16"
